@@ -32,7 +32,7 @@ player_speed = 5
 # --- Player Sprite Loading ---
 # NOTE: Save your uploaded image as 'player_sprite.png' in the same directory.
 try:
-    player_image = pygame.image.load("player_sprite.png").convert_alpha()
+    player_image = pygame.image.load("character.png").convert_alpha()
     player_image = pygame.transform.scale(player_image, (player_width, player_height))
 except pygame.error:
     print("Warning: 'player_sprite.png' not found. Using a blue rectangle as fallback.")

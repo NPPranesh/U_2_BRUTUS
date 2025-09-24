@@ -43,9 +43,11 @@ except pygame.error:
 # Bullets
 bullet_size = 10
 bullet_speed = 10
+bull_width = 30
+bull_height = 30
 bullets = []
 last_shot_time = 0
-bullet_cooldown = 200  # milliseconds
+bullet_cooldown = 1000  # milliseconds
 
 # Enemy
 enemy_radius = 25
@@ -55,18 +57,9 @@ enemies = []
 
 # Function to spawn a new enemy from a random side (top, left, or right)
 def spawn_enemy():
-    """Generates a new enemy dictionary with a random spawn location."""
-    spawn_side = 'right'
 
-    if spawn_side == "top":
-        x = random.randint(enemy_radius, WIDTH - enemy_radius)
-        y = random.randint(50, 200)
-    elif spawn_side == "left":
-        x = -enemy_radius  # Spawn just off-screen
-        y = random.randint(enemy_radius, HEIGHT - enemy_radius)
-    else:  # "right"
-        x = WIDTH + enemy_radius  # Spawn just off-screen
-        y = random.randint(enemy_radius, HEIGHT - enemy_radius)
+    x = WIDTH + enemy_radius  # Spawn just off-screen
+    y = random.randint(enemy_radius, HEIGHT - enemy_radius)
 
     return {
         "x": x,
@@ -77,7 +70,7 @@ def spawn_enemy():
 
 
 # Spawn initial enemies
-for _ in range(5):
+for _ in range(2):
     enemies.append(spawn_enemy())
 
 # Health
@@ -133,7 +126,9 @@ while running:
 
     # Draw bullets
     for bullet in bullets:
-        pygame.draw.circle(screen, WHITE, (int(bullet["x"]), int(bullet["y"])), 5)
+        Bull = pygame.image.load("bullet.png").convert_alpha()
+        Bull = pygame.transform.scale(Bull, (bull_width, bull_height))
+        screen.blit(Bull, (bullet['x'], bullet['y']))
 
     # Move and draw enemies
     for enemy in enemies[:]:
