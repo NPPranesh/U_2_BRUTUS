@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Creator</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a202c;
+            color: #e2e8f0;
+        }
+        .container-wrapper {
+            background-color: #2d3748;
+            border: 1px solid #4a5568;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        canvas {
+            background-color: #2d3748;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div class="container-wrapper rounded-2xl flex flex-col md:flex-row max-w-7xl w-full p-6 space-y-6 md:space-y-0 md:space-x-6">
+        <!-- Control Panel (Left Side) -->
+        <div class="w-full md:w-1/3 p-4 bg-gray-800 rounded-xl space-y-4">
+            <h1 class="text-3xl font-bold text-center text-white">Game Creator</h1>
+            <p class="text-sm text-center text-gray-400">Design your game, then click 'Generate' to create a playable file!</p>
+
+            <!-- Element Creation Buttons -->
+            <div class="flex flex-col space-y-2">
+                <button id="addPlayerBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200 shadow-md">
+                    Add Player
+                </button>
+                <button id="addEnemyBtn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200 shadow-md">
+                    Add Enemy
+                </button>
+                <button id="addObstacleBtn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200 shadow-md">
+                    Add Obstacle
+                </button>
+                <button id="clearAllBtn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200 shadow-md">
+                    Clear All
+                </button>
+            </div>
+
+            <hr class="border-gray-600">
+
+            <!-- Selected Element Properties -->
+            <div id="propertiesPanel" class="bg-gray-700 p-4 rounded-lg space-y-4 hidden">
+                <h2 class="text-xl font-semibold">Selected Element</h2>
+
+                <div>
+                    <label class="block text-gray-300">Type:</label>
+                    <span id="elementType" class="font-bold"></span>
+                </div>
+
+                <div>
+                    <label for="propSize" class="block text-gray-300">Size:</label>
+                    <input type="number" id="propSize" class="w-full mt-1 p-2 rounded-lg bg-gray-600 border border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div>
+                    <label for="propX" class="block text-gray-300">X Position:</label>
+                    <input type="number" id="propX" class="w-full mt-1 p-2 rounded-lg bg-gray-600 border border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div>
+                    <label for="propY" class="block text-gray-300">Y Position:</label>
+                    <input type="number" id="propY" class="w-full mt-1 p-2 rounded-lg bg-gray-600 border border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div>
+                    <label for="propColor" class="block text-gray-300">Color:</label>
+                    <input type="color" id="propColor" class="w-full mt-1 h-10 rounded-lg bg-gray-600 border border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+
+            <!-- Generate Button -->
+            <button id="generateBtn" class="w-full mt-4 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 shadow-lg">
+                Generate Game
+            </button>
+        </div>
+
+        <!-- Game Canvas (Right Side) -->
+        <div class="w-full md:w-2/3 flex items-center justify-center p-4 bg-gray-800 rounded-xl">
+            <canvas id="gameCanvas" class="w-full h-[500px] rounded-lg border-4 border-gray-700"></canvas>
+        </div>
+
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const addPlayerBtn = document.getElementById('addPlayerBtn');
+        const addEnemyBtn = document.getElementById('addEnemyBtn');
+        const addObstacleBtn = document.getElementById('addObstacleBtn');
+        const clearAllBtn = document.getElementById('clearAllBtn');
+        const generateBtn = document.getElementById('generateBtn');
+        const propertiesPanel = document.getElementById('propertiesPanel');
+        const elementType = document.getElementById('elementType');
+        const propSize = document.getElementById('propSize');
+        const propX = document.getElementById('propX');
+        const propY = document.getElementById('propY');
+        const propColor = document.getElementById('propColor');
+
+        let gameState = {
+            player: null,
+            enemies: [],
+            obstacles: [],
+        };
+        let selectedElement = null;
+
+        // Set canvas dimensions
+        const resizeCanvas = () => {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            draw();
+        };
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // --- Drawing Functions ---
+        const draw = () => {
+            // Clear canvas
+            ctx.fillStyle = '#2d3748';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw player
+            if (gameState.player) {
+                ctx.fillStyle = gameState.player.color;
+                ctx.fillRect(gameState.player.x, gameState.player.y, gameState.player.size, gameState.player.size);
+            }
+
+            // Draw enemies
+            gameState.enemies.forEach(enemy => {
+                ctx.fillStyle = enemy.color;
+                ctx.fillRect(enemy.x, enemy.y, enemy.size, enemy.size);
+            });
+
+            // Draw obstacles
+            gameState.obstacles.forEach(obstacle => {
+                ctx.fillStyle = obstacle.color;
+                ctx.fillRect(obstacle.x, obstacle.y, obstacle.size, obstacle.size);
+            });
+
+            // Highlight selected element
+            if (selectedElement) {
+                ctx.strokeStyle = '#38bdf8'; // Sky blue for highlighting
+                ctx.lineWidth = 3;
+                ctx.strokeRect(selectedElement.x, selectedElement.y, selectedElement.size, selectedElement.size);
+            }
+        };
+
+        // --- UI Interactions ---
+        addPlayerBtn.addEventListener('click', () => {
+            if (!gameState.player) {
+                gameState.player = {
+                    type: 'player',
+                    x: canvas.width / 2 - 25,
+                    y: canvas.height / 2 - 25,
+                    size: 50,
+                    color: '#4f46e5'
+                };
+                draw();
+            }
+        });
+
+        addEnemyBtn.addEventListener('click', () => {
+            gameState.enemies.push({
+                type: 'enemy',
+                x: Math.random() * (canvas.width - 50),
+                y: Math.random() * (canvas.height - 50),
+                size: 40,
+                color: '#ef4444'
+            });
+            draw();
+        });
+
+        addObstacleBtn.addEventListener('click', () => {
+            gameState.obstacles.push({
+                type: 'obstacle',
+                x: Math.random() * (canvas.width - 70),
+                y: Math.random() * (canvas.height - 70),
+                size: 70,
+                color: '#6b7280'
+            });
+            draw();
+        });
+
+        clearAllBtn.addEventListener('click', () => {
+            gameState = {
+                player: null,
+                enemies: [],
+                obstacles: [],
+            };
+            selectedElement = null;
+            propertiesPanel.classList.add('hidden');
+            draw();
+        });
+
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
+
+            selectedElement = null;
+
+            // Check if player is clicked
+            if (gameState.player && clickX > gameState.player.x && clickX < gameState.player.x + gameState.player.size &&
+                clickY > gameState.player.y && clickY < gameState.player.y + gameState.player.size) {
+                selectedElement = gameState.player;
+            }
+
+            // Check if any enemy is clicked
+            if (!selectedElement) {
+                for (let i = gameState.enemies.length - 1; i >= 0; i--) {
+                    const enemy = gameState.enemies[i];
+                    if (clickX > enemy.x && clickX < enemy.x + enemy.size &&
+                        clickY > enemy.y && clickY < enemy.y + enemy.size) {
+                        selectedElement = enemy;
+                        break;
+                    }
+                }
+            }
+
+            // Check if any obstacle is clicked
+            if (!selectedElement) {
+                for (let i = gameState.obstacles.length - 1; i >= 0; i--) {
+                    const obstacle = gameState.obstacles[i];
+                    if (clickX > obstacle.x && clickX < obstacle.x + obstacle.size &&
+                        clickY > obstacle.y && clickY < obstacle.y + obstacle.size) {
+                        selectedElement = obstacle;
+                        break;
+                    }
+                }
+            }
+
+            if (selectedElement) {
+                propertiesPanel.classList.remove('hidden');
+                updatePropertiesPanel();
+            } else {
+                propertiesPanel.classList.add('hidden');
+            }
+            draw();
+        });
+
+        // --- Property Panel Logic ---
+        const updatePropertiesPanel = () => {
+            if (selectedElement) {
+                elementType.textContent = selectedElement.type.toUpperCase();
+                propSize.value = selectedElement.size;
+                propX.value = selectedElement.x;
+                propY.value = selectedElement.y;
+                propColor.value = selectedElement.color;
+            }
+        };
+
+        propSize.addEventListener('input', () => {
+            if (selectedElement) {
+                selectedElement.size = parseInt(propSize.value);
+                draw();
+            }
+        });
+        propX.addEventListener('input', () => {
+            if (selectedElement) {
+                selectedElement.x = parseInt(propX.value);
+                draw();
+            }
+        });
+        propY.addEventListener('input', () => {
+            if (selectedElement) {
+                selectedElement.y = parseInt(propY.value);
+                draw();
+            }
+        });
+        propColor.addEventListener('input', () => {
+            if (selectedElement) {
+                selectedElement.color = propColor.value;
+                draw();
+            }
+        });
+
+        // --- Game File Generation ---
+        generateBtn.addEventListener('click', () => {
+            // Create a JSON string of the current game state
+            const serializedState = JSON.stringify(gameState);
+
+            // Build the full HTML content for the new game file
+            const gameContent = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Custom Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #1a202c;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        canvas {
+            background-color: #2d3748;
+            border: 4px solid #4a5568;
+        }
+    </style>
+</head>
+<body class="p-4">
+    <div class="rounded-xl overflow-hidden shadow-2xl">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gameState = ${serializedState};
+
+        let player = gameState.player;
+        let enemies = gameState.enemies;
+        let obstacles = gameState.obstacles;
+
+        let playerSpeed = 5;
+
+        // Game loop
+        const gameLoop = () => {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        };
+
+        const update = () => {
+            // Player Movement (WASD)
+            document.addEventListener('keydown', (e) => {
+                if (!player) return;
+                switch(e.key) {
+                    case 'w': player.y -= playerSpeed; break;
+                    case 's': player.y += playerSpeed; break;
+                    case 'a': player.x -= playerSpeed; break;
+                    case 'd': player.x += playerSpeed; break;
+                }
+            });
+        };
+
+        const draw = () => {
+            ctx.fillStyle = '#2d3748';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (player) {
+                ctx.fillStyle = player.color;
+                ctx.fillRect(player.x, player.y, player.size, player.size);
+            }
+
+            enemies.forEach(enemy => {
+                ctx.fillStyle = enemy.color;
+                ctx.fillRect(enemy.x, enemy.y, enemy.size, enemy.size);
+            });
+
+            obstacles.forEach(obstacle => {
+                ctx.fillStyle = obstacle.color;
+                ctx.fillRect(obstacle.x, obstacle.y, obstacle.size, obstacle.size);
+            });
+        };
+
+        gameLoop();
+    </script>
+</body>
+</html>
+            `;
+
+            // Create a Blob from the generated HTML string
+            const blob = new Blob([gameContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'my_game.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+    </script>
+
+</body>
+</html>
