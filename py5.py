@@ -22,7 +22,6 @@ try:
 except pygame.error:
     print("Warning: 'cave_pixel.png' not found. Using a black background.")
     background = None
-
 # Player
 player_width = 80
 player_height = 80
@@ -33,7 +32,7 @@ player_speed = 5
 # --- Player Sprite Loading ---
 # NOTE: Save your uploaded image as 'player_sprite.png' in the same directory.
 try:
-    player_image = pygame.image.load("character.png").convert_alpha()
+    player_image = pygame.image.load("player_sprite.png").convert_alpha()
     player_image = pygame.transform.scale(player_image, (player_width, player_height))
 except pygame.error:
     print("Warning: 'player_sprite.png' not found. Using a blue rectangle as fallback.")
@@ -56,7 +55,7 @@ enemies = []
 # Function to spawn a new enemy from a random side (top, left, or right)
 def spawn_enemy():
     """Generates a new enemy dictionary with a random spawn location."""
-    spawn_side = 'right'
+    spawn_side = random.choice(["top", "left", "right"])
 
     if spawn_side == "top":
         x = random.randint(enemy_radius, WIDTH - enemy_radius)
@@ -118,8 +117,16 @@ while running:
     bullet_spawn_x = player_x + player_width // 2
     bullet_spawn_y = player_y + player_height // 2
 
-
-    if keys[pygame.K_SPACE] and current_time - last_shot_time > bullet_cooldown:
+    if keys[pygame.K_w] and current_time - last_shot_time > bullet_cooldown:
+        bullets.append({"x": bullet_spawn_x, "y": bullet_spawn_y, "vx": 0, "vy": -bullet_speed})
+        last_shot_time = current_time
+    elif keys[pygame.K_s] and current_time - last_shot_time > bullet_cooldown:
+        bullets.append({"x": bullet_spawn_x, "y": bullet_spawn_y, "vx": 0, "vy": bullet_speed})
+        last_shot_time = current_time
+    elif keys[pygame.K_a] and current_time - last_shot_time > bullet_cooldown:
+        bullets.append({"x": bullet_spawn_x, "y": bullet_spawn_y, "vx": -bullet_speed, "vy": 0})
+        last_shot_time = current_time
+    elif keys[pygame.K_d] and current_time - last_shot_time > bullet_cooldown:
         bullets.append({"x": bullet_spawn_x, "y": bullet_spawn_y, "vx": bullet_speed, "vy": 0})
         last_shot_time = current_time
 
