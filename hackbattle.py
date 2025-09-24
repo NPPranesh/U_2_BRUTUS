@@ -6,27 +6,24 @@ import os
 
 pygame.init()
 
-# --- Screen ---
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 SCREEN = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Vampire Survivors Clone")
 
-# --- Background load ---
 try:
     BACKGROUND = pygame.image.load("background.jpeg").convert()
     BACKGROUND = pygame.transform.scale(BACKGROUND, (SCREEN_WIDTH, SCREEN_HEIGHT))
 except Exception:
     BACKGROUND = None
 
-# --- Player image load ---
+
 if os.path.exists("player.png"):
     PLAYER_IMG_RAW = pygame.image.load("player.png").convert_alpha()
     PLAYER_IMG = pygame.transform.scale(PLAYER_IMG_RAW, (60, 60))  # auto-scale
 else:
     PLAYER_IMG = None
 
-# --- Colors & Fonts ---
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (200, 0, 0)
@@ -42,14 +39,13 @@ ORANGE = (255, 165, 0)
 FONT = pygame.font.SysFont("Arial", 36)
 SMALL = pygame.font.SysFont("Arial", 20)
 
-# --- Game states ---
+
 MENU = "menu"
 GAME = "game"
 LEVEL_UP = "level_up"
 GAME_OVER = "game_over"
 game_state = MENU
 
-# --- Button ---
 class Button:
     def __init__(self, text, x, y, w, h, color, hover_color, action=None, disabled=False):
         self.text = text
@@ -79,7 +75,6 @@ class Button:
             if self.rect.collidepoint(event.pos) and self.action:
                 self.action()
 
-# --- Entities ---
 class Player:
     def __init__(self, x, y):
         self.rect = pygame.Rect(x, y, 40, 40)
@@ -111,7 +106,6 @@ class Player:
         else:
             pygame.draw.rect(screen, GREEN, self.rect)
 
-        # HP bar
         pygame.draw.rect(screen, RED, (10, 40, 200, 20))
         hp_ratio = self.hp / self.max_hp
         pygame.draw.rect(screen, GREEN, (10, 40, 200 * hp_ratio, 20))
@@ -229,7 +223,6 @@ class Heart:
         self.rect = pygame.Rect(x, y, 14, 14)
     def draw(self, s): pygame.draw.rect(s, PINK, self.rect)
 
-# --- Upgrade System ---
 def upgrade_fire_rate():  global shoot_delay, game_state; shoot_delay = max(200, int(shoot_delay * 0.8)); game_state = GAME
 def upgrade_damage():     global player, orbiting_orbs, explosion_spell, game_state; player.damage += 1; [setattr(o,"damage",o.damage+1) for o in orbiting_orbs]; explosion_spell.damage += 1; game_state = GAME
 def upgrade_speed():      global player, game_state; player.speed += 1; game_state = GAME
@@ -257,7 +250,6 @@ RARITY_COLOR = {
 def build_levelup_buttons():
     return [Button(up["name"], SCREEN_WIDTH//2-200, 220+80*i, 400, 50, RARITY_COLOR[up["rarity"]], GRAY, action=up["func"]) for i,up in enumerate(random.sample(UPGRADE_POOL,3))]
 
-# --- UI ---
 def start_game():
     global game_state, player, enemies, bullets, gems, hearts, orbiting_orbs, explosion_spell, shoot_delay, shoot_timer, enemy_timer, strength, start_time, upgrade_buttons
     game_state = GAME
@@ -277,7 +269,6 @@ menu_btn = Button("Main Menu", SCREEN_WIDTH//2-100, SCREEN_HEIGHT//2+40,200,60,R
 player = None; enemies=[]; bullets=[]; gems=[]; hearts=[]; orbiting_orbs=[]; explosion_spell=None
 shoot_delay=1000; shoot_timer=0; enemy_timer=0; strength=0; start_time=0; upgrade_buttons=[]
 
-# --- Main loop ---
 clock = pygame.time.Clock()
 running=True
 while running:
