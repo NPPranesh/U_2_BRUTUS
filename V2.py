@@ -9,7 +9,7 @@ pygame.init()
 SCREEN_WIDTH = 1300
 SCREEN_HEIGHT = 750
 SCREEN = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("Space War")
+pygame.display.set_caption("Space War:Ceaser")
 
 # Load background
 try:
@@ -355,7 +355,7 @@ while running:
         elif game_state==GAME_OVER: menu_btn.click(event)
 
     if game_state==MENU:
-        SCREEN.blit(FONT.render("Ceaser",True,WHITE),(SCREEN_WIDTH//2-70,150))
+        SCREEN.blit(FONT.render("Space War:Ceaser",True,WHITE),(SCREEN_WIDTH//2-70,150))
         start_btn.draw(SCREEN)
 
     elif game_state==GAME:
