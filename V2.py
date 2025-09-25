@@ -6,8 +6,8 @@ import os
 
 pygame.init()
 
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+SCREEN_WIDTH = 1300
+SCREEN_HEIGHT = 750
 SCREEN = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Ceaser")
 
@@ -33,6 +33,15 @@ BOSS_IMG = pygame.transform.scale(BOSS_IMG_RAW, (100, 100))
 
 MINION_IMG_RAW = pygame.image.load("enemy.png").convert_alpha()
 MINION_IMG = pygame.transform.scale(MINION_IMG_RAW, (60, 60))
+
+XP_GEM_IMG_RAW = pygame.image.load("xp_gem.png").convert_alpha()
+XP_GEM_IMG = pygame.transform.scale(XP_GEM_IMG_RAW, (30, 30))
+
+HEART_IMG_RAW = pygame.image.load("heart.png").convert_alpha()
+HEART_IMG = pygame.transform.scale(HEART_IMG_RAW, (30, 30))
+
+ORB_IMG_RAW = pygame.image.load("orb.png").convert_alpha()
+ORB_IMG = pygame.transform.scale(ORB_IMG_RAW, (15, 15))  # adjust size as needed
 
 # Colors and fonts
 WHITE, BLACK = (255, 255, 255), (0, 0, 0)
@@ -229,7 +238,8 @@ class OrbitingOrb:
         self.rect.centery = int(cy + math.sin(self.angle) * self.radius)
 
     def draw(self, s):
-        pygame.draw.circle(s, ORANGE, self.rect.center, self.size // 2)
+        img_rect = ORB_IMG.get_rect(center=self.rect.center)
+        s.blit(ORB_IMG, img_rect)
 
 class ExplosionSpell:
     def __init__(self, player, cooldown=4000, radius=100, damage=2):
@@ -271,14 +281,15 @@ class ExplosionSpell:
 class XPGem:
     def __init__(self, x, y):
         self.rect = pygame.Rect(x, y, 12, 12)
-    def draw(self, s): pygame.draw.rect(s, BLUE, self.rect)
-
+    def draw(self, s):
+            s.blit(XP_GEM_IMG, self.rect)
 class Heart:
     def __init__(self, x, y):
         self.rect = pygame.Rect(x, y, 14, 14)
-    def draw(self, s): pygame.draw.rect(s, PINK, self.rect)
+    def draw(self, s):
+        s.blit(HEART_IMG, self.rect)
 
-# ---------------- UPGRADES ----------------
+#---------------- UPGRADES ----------------
 def upgrade_fire_rate():  global shoot_delay, game_state; shoot_delay = max(200, int(shoot_delay * 0.8)); game_state = GAME
 def upgrade_damage():     global player, orbiting_orbs, explosion_spell, game_state; player.damage += 1; [setattr(o,"damage",o.damage+1) for o in orbiting_orbs]; explosion_spell.damage += 1; game_state = GAME
 def upgrade_speed():      global player, game_state; player.speed += 1; game_state = GAME
@@ -291,7 +302,6 @@ def upgrade_orb_speed():  global orbiting_orbs, game_state; [setattr(o,"speed",o
 def upgrade_life_steal(): global player, game_state; player.life_steal += 0.05; game_state=GAME
 
 UPGRADE_POOL = [
-    {"name": "Increase Fire Rate", "func": upgrade_fire_rate, "rarity": "Common"},
     {"name": "Increase Damage", "func": upgrade_damage, "rarity": "Common"},
     {"name": "Increase Speed", "func": upgrade_speed, "rarity": "Common"},
     {"name": "Add/Upgrade Orb", "func": upgrade_orb, "rarity": "Rare"},
