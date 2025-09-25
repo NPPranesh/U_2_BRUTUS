@@ -13,27 +13,27 @@ pygame.display.set_caption("Space War")
 
 # --- Background ---
 try:
-    BACKGROUND = pygame.image.load("background.png.png").convert()
+    BACKGROUND = pygame.image.load("background.png").convert()
     BACKGROUND = pygame.transform.scale(BACKGROUND, (SCREEN_WIDTH, SCREEN_HEIGHT))
 except Exception:
     BACKGROUND = None
 
 # --- Player ---
-if os.path.exists("player.png.png"):
-    PLAYER_IMG_RAW = pygame.image.load("player.png.png").convert_alpha()
+if os.path.exists("player.png"):
+    PLAYER_IMG_RAW = pygame.image.load("player.png").convert_alpha()
     PLAYER_IMG = pygame.transform.scale(PLAYER_IMG_RAW, (60, 60))
 else:
     PLAYER_IMG = None
 
 # --- Minion and Boss Images ---
-if os.path.exists("minion.png.png"):
-    MINION_IMG_RAW = pygame.image.load("minion.png.png").convert_alpha()
+if os.path.exists("minion.png"):
+    MINION_IMG_RAW = pygame.image.load("minion.png").convert_alpha()
     MINION_IMG = pygame.transform.scale(MINION_IMG_RAW, (60, 60))
 else:
     MINION_IMG = None
 
-if os.path.exists("boss.png.png"):
-    BOSS_IMG_RAW = pygame.image.load("boss.png.png").convert_alpha()
+if os.path.exists("boss.png"):
+    BOSS_IMG_RAW = pygame.image.load("boss.png").convert_alpha()
     BOSS_IMG = pygame.transform.scale(BOSS_IMG_RAW, (100, 100))
 else:
     BOSS_IMG = None
