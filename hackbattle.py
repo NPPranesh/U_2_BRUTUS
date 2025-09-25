@@ -216,7 +216,7 @@ class ExplosionSpell:
 class XPGem:
     def __init__(self, x, y):
         self.rect = pygame.Rect(x, y, 12, 12)
-    def draw(self, s): pygame.draw.rect(s, BLUE, self.rect)
+    def draw(self, s): pygame.draw.rect(s,YELLOW, self.rect)
 
 class Heart:
     def __init__(self, x, y):
