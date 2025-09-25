@@ -9,7 +9,7 @@ pygame.init()
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 SCREEN = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("Vampire Survivors Clone")
+pygame.display.set_caption("Space War")
 
 # --- Background ---
 try:
@@ -43,6 +43,26 @@ if os.path.exists("bullet.png"):
     BULLET_IMG = pygame.transform.scale(BULLET_IMG_RAW, (40, 40))  # adjust size as needed
 else:
     BULLET_IMG = None
+
+if os.path.exists("xp_gem.png"):
+    XP_GEM_IMG_RAW = pygame.image.load("xp_gem.png").convert_alpha()
+    XP_GEM_IMG = pygame.transform.scale(XP_GEM_IMG_RAW, (30, 30))
+else:
+    XP_GEM_IMG = None
+
+if os.path.exists("heart.png"):
+    HEART_IMG_RAW = pygame.image.load("heart.png").convert_alpha()
+    HEART_IMG = pygame.transform.scale(HEART_IMG_RAW, (30, 30))
+else:
+    HEART_IMG = None
+
+if os.path.exists("orb.png"):
+    ORB_IMG_RAW = pygame.image.load("orb.png").convert_alpha()
+    ORB_IMG = pygame.transform.scale(ORB_IMG_RAW, (15, 15))  # adjust size as needed
+else:
+    ORB_IMG = None
+
+
 
 
 # --- Colors & Fonts ---
@@ -258,7 +278,11 @@ class OrbitingOrb:
         self.rect.centery = int(cy + math.sin(self.angle) * self.radius)
 
     def draw(self, s):
-        pygame.draw.circle(s, ORANGE, self.rect.center, self.size // 2)
+        if ORB_IMG:
+            img_rect = ORB_IMG.get_rect(center=self.rect.center)
+            s.blit(ORB_IMG, img_rect)
+        else:
+            pygame.draw.circle(s, ORANGE, self.rect.center, self.size // 2)
 
 # ------------------ EXPLOSION SPELL ------------------
 class ExplosionSpell:
@@ -298,12 +322,22 @@ class ExplosionSpell:
 class XPGem:
     def __init__(self, x, y):
         self.rect = pygame.Rect(x, y, 12, 12)
-    def draw(self, s): pygame.draw.rect(s, BLUE, self.rect)
+    def draw(self, s):
+        if XP_GEM_IMG:
+            s.blit(XP_GEM_IMG, self.rect)
+        else:
+            pygame.draw.rect(s, BLUE, self.rect)
+
 
 class Heart:
     def __init__(self, x, y):
         self.rect = pygame.Rect(x, y, 14, 14)
-    def draw(self, s): pygame.draw.rect(s, PINK, self.rect)
+    def draw(self, s):
+        if HEART_IMG:
+            s.blit(HEART_IMG, self.rect)
+        else:
+            pygame.draw.rect(s, PINK, self.rect)
+
 
 # ------------------ UPGRADES ------------------
 def upgrade_fire_rate(): global shoot_delay, game_state; shoot_delay = max(200, int(shoot_delay * 0.8)); game_state = GAME
