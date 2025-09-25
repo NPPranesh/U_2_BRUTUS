@@ -9,7 +9,7 @@ pygame.init()
 SCREEN_WIDTH = 1300
 SCREEN_HEIGHT = 750
 SCREEN = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("Ceaser")
+pygame.display.set_caption("Space War")
 
 # Load background
 try:
