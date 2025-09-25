@@ -9,34 +9,66 @@ pygame.init()
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 SCREEN = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("Ceaser")
+pygame.display.set_caption("Vampire Survivors Clone")
 
-# Load background
+# --- Background ---
 try:
-    BACKGROUND = pygame.image.load("background.jpeg").convert()
+    BACKGROUND = pygame.image.load("background.png.png").convert()
     BACKGROUND = pygame.transform.scale(BACKGROUND, (SCREEN_WIDTH, SCREEN_HEIGHT))
 except Exception:
     BACKGROUND = None
 
-# Load player image
-if os.path.exists("player.png"):
-    PLAYER_IMG_RAW = pygame.image.load("player.png").convert_alpha()
+# --- Player ---
+if os.path.exists("player.png.png"):
+    PLAYER_IMG_RAW = pygame.image.load("player.png.png").convert_alpha()
     PLAYER_IMG = pygame.transform.scale(PLAYER_IMG_RAW, (60, 60))
 else:
     PLAYER_IMG = None
 
-# Colors and fonts
-WHITE, BLACK = (255, 255, 255), (0, 0, 0)
-RED, GREEN, GRAY, DARK_GRAY = (200, 0, 0), (0, 200, 0), (150, 150, 150), (80, 80, 80)
-YELLOW, BLUE, PINK, PURPLE, ORANGE = (255, 255, 0), (50, 150, 255), (255, 100, 150), (180, 0, 180), (255, 165, 0)
+# --- Minion and Boss Images ---
+if os.path.exists("minion.png.png"):
+    MINION_IMG_RAW = pygame.image.load("minion.png.png").convert_alpha()
+    MINION_IMG = pygame.transform.scale(MINION_IMG_RAW, (60, 60))
+else:
+    MINION_IMG = None
+
+if os.path.exists("boss.png.png"):
+    BOSS_IMG_RAW = pygame.image.load("boss.png.png").convert_alpha()
+    BOSS_IMG = pygame.transform.scale(BOSS_IMG_RAW, (100, 100))
+else:
+    BOSS_IMG = None
+
+if os.path.exists("bullet.png"):
+    BULLET_IMG_RAW = pygame.image.load("bullet.png").convert_alpha()
+    BULLET_IMG = pygame.transform.scale(BULLET_IMG_RAW, (40, 40))  # adjust size as needed
+else:
+    BULLET_IMG = None
+
+
+# --- Colors & Fonts ---
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (200, 0, 0)
+GREEN = (0, 200, 0)
+GRAY = (150, 150, 150)
+DARK_GRAY = (80, 80, 80)
+YELLOW = (255, 255, 0)
+BLUE = (50, 150, 255)
+PINK = (255, 100, 150)
+PURPLE = (180, 0, 180)
+ORANGE = (255, 165, 0)
+
 FONT = pygame.font.SysFont("Arial", 36)
 SMALL = pygame.font.SysFont("Arial", 20)
 
-# Game states
-MENU, GAME, LEVEL_UP, GAME_OVER = "menu", "game", "level_up", "game_over"
+# --- Game States ---
+MENU = "menu"
+GAME = "game"
+LEVEL_UP = "level_up"
+GAME_OVER = "game_over"
 game_state = MENU
 
-# ---------------- BUTTON CLASS ----------------
+# ------------------ BUTTON CLASS ------------------
 class Button:
     def __init__(self, text, x, y, w, h, color, hover_color, action=None, disabled=False):
         self.text = text
@@ -59,13 +91,12 @@ class Button:
         screen.blit(surf, surf.get_rect(center=self.rect.center))
 
     def click(self, event):
-        if self.disabled:
-            return
+        if self.disabled: return
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if self.rect.collidepoint(event.pos) and self.action:
                 self.action()
 
-# ---------------- PLAYER CLASS ----------------
+# ------------------ PLAYER ------------------
 class Player:
     def __init__(self, x, y):
         self.rect = pygame.Rect(x, y, 40, 40)
@@ -79,25 +110,17 @@ class Player:
         self.xp_multiplier = 1.0
         self.magnet_radius = 0
         self.image = PLAYER_IMG
-        self.life_steal = 0.0
 
     def move(self, keys):
-        if keys[pygame.K_w] or keys[pygame.K_UP]:
-            self.rect.y -= self.speed
-        if keys[pygame.K_s] or keys[pygame.K_DOWN]:
-            self.rect.y += self.speed
-        if keys[pygame.K_a] or keys[pygame.K_LEFT]:
-            self.rect.x -= self.speed
-        if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
-            self.rect.x += self.speed
+        if keys[pygame.K_w] or keys[pygame.K_UP]: self.rect.y -= self.speed
+        if keys[pygame.K_s] or keys[pygame.K_DOWN]: self.rect.y += self.speed
+        if keys[pygame.K_a] or keys[pygame.K_LEFT]: self.rect.x -= self.speed
+        if keys[pygame.K_d] or keys[pygame.K_RIGHT]: self.rect.x += self.speed
         self.rect.clamp_ip(SCREEN.get_rect())
 
     def draw(self, screen):
-        if self.image:
-            screen.blit(self.image, self.rect)
-        else:
-            pygame.draw.rect(screen, GREEN, self.rect)
-        # HP bar
+        if self.image: screen.blit(self.image, self.rect)
+        else: pygame.draw.rect(screen, GREEN, self.rect)
         pygame.draw.rect(screen, RED, (10, 40, 200, 20))
         hp_ratio = self.hp / self.max_hp
         pygame.draw.rect(screen, GREEN, (10, 40, 200 * hp_ratio, 20))
@@ -119,15 +142,16 @@ class Player:
     def heal(self, amount):
         self.hp = min(self.max_hp, self.hp + amount)
 
-# ---------------- ENEMY CLASS ----------------
+# ------------------ ENEMY ------------------
 class Enemy:
     def __init__(self, x, y, strength, boss=False):
-        size = 30 if not boss else 60
+        size = 30 if not boss else 100
         self.rect = pygame.Rect(x, y, size, size)
         self.color = RED if not boss else PURPLE
         self.speed = 2 + strength * 0.1
         self.hp = (2 + strength) * (5 if boss else 1)
         self.damage = 1 if not boss else 2
+        self.boss = boss
 
     def move_towards_player(self, player):
         dx, dy = player.rect.centerx - self.rect.centerx, player.rect.centery - self.rect.centery
@@ -138,8 +162,11 @@ class Enemy:
             self.rect.y += dy * self.speed
 
     def draw(self, screen):
-        pygame.draw.rect(screen, self.color, self.rect)
+        if not self.boss and MINION_IMG: screen.blit(MINION_IMG, self.rect)
+        elif self.boss and BOSS_IMG: screen.blit(BOSS_IMG, self.rect)
+        else: pygame.draw.rect(screen, self.color, self.rect)
 
+# ------------------ BOSS ------------------
 class Boss(Enemy):
     def __init__(self, x, y, strength):
         super().__init__(x, y, strength, boss=True)
@@ -152,7 +179,7 @@ class Boss(Enemy):
         self.spawn_cd = 3000
         self.last_spawn = pygame.time.get_ticks()
         self.color_phase1 = PURPLE
-        self.color_phase2 = ORANGE  # Phase 2 color
+        self.color_phase2 = ORANGE
 
     def update(self, player, enemies, strength):
         self.move_towards_player(player)
@@ -170,9 +197,10 @@ class Boss(Enemy):
                 self.last_spawn = now
 
     def draw(self, screen):
-        # Change color based on phase
-        color = self.color_phase2 if self.phase == 2 else self.color_phase1
-        pygame.draw.rect(screen, color, self.rect)
+        if BOSS_IMG: screen.blit(BOSS_IMG, self.rect)
+        else:
+            color = self.color_phase2 if self.phase == 2 else self.color_phase1
+            pygame.draw.rect(screen, color, self.rect)
         # HP bar
         bar_w = 300
         ratio = max(0, self.hp / self.max_hp)
@@ -181,22 +209,38 @@ class Boss(Enemy):
         text = SMALL.render("BOSS", True, WHITE)
         screen.blit(text, (SCREEN_WIDTH // 2 - text.get_width() // 2, 50))
 
-
-# ---------------- BULLET, ORB, EXPLOSION ----------------
+# ------------------ BULLET ------------------
 class Bullet:
     def __init__(self, x, y, dx, dy, dmg):
-        self.rect = pygame.Rect(int(x)-5, int(y)-5, 10, 10)
+        self.x = x
+        self.y = y
         self.dx, self.dy = dx, dy
         self.speed = 7
         self.damage = dmg
+        self.rect = pygame.Rect(int(x)-5, int(y)-5, 10, 10)
+        if BULLET_IMG:
+            # calculate angle in degrees
+            self.angle = math.degrees(math.atan2(-dy, dx))
+            # rotate the image
+            self.image = pygame.transform.rotate(BULLET_IMG, self.angle)
+        else:
+            self.image = None
 
     def move(self):
-        self.rect.x += self.dx * self.speed
-        self.rect.y += self.dy * self.speed
+        self.x += self.dx * self.speed
+        self.y += self.dy * self.speed
+        self.rect.center = (int(self.x), int(self.y))
 
     def draw(self, s):
-        pygame.draw.rect(s, YELLOW, self.rect)
+        if self.image:
+            # draw rotated image centered at bullet
+            img_rect = self.image.get_rect(center=self.rect.center)
+            s.blit(self.image, img_rect)
+        else:
+            pygame.draw.rect(s, YELLOW, self.rect)
 
+
+# ------------------ ORBITING ORB ------------------
 class OrbitingOrb:
     def __init__(self, player, radius=60, speed=0.05, damage=1):
         self.player = player
@@ -216,6 +260,7 @@ class OrbitingOrb:
     def draw(self, s):
         pygame.draw.circle(s, ORANGE, self.rect.center, self.size // 2)
 
+# ------------------ EXPLOSION SPELL ------------------
 class ExplosionSpell:
     def __init__(self, player, cooldown=4000, radius=100, damage=2):
         self.player = player
@@ -237,10 +282,7 @@ class ExplosionSpell:
             for e in enemies[:]:
                 if math.hypot(e.rect.centerx - cx, e.rect.centery - cy) <= self.radius:
                     e.hp -= self.damage
-                    self.player.hp = min(self.player.max_hp, self.player.hp + e.damage*self.player.life_steal)
                     if e.hp <= 0:
-                        if isinstance(e,Boss):
-                            continue
                         enemies.remove(e)
                         gems.append(XPGem(e.rect.x, e.rect.y))
                         if random.random() < 0.2:
@@ -252,7 +294,7 @@ class ExplosionSpell:
         if self.active:
             pygame.draw.circle(screen, (255, 100, 0), self.player.rect.center, self.radius, 3)
 
-# ---------------- GEMS & HEARTS ----------------
+# ------------------ GEMS & HEARTS ------------------
 class XPGem:
     def __init__(self, x, y):
         self.rect = pygame.Rect(x, y, 12, 12)
@@ -263,17 +305,17 @@ class Heart:
         self.rect = pygame.Rect(x, y, 14, 14)
     def draw(self, s): pygame.draw.rect(s, PINK, self.rect)
 
-# ---------------- UPGRADES ----------------
-def upgrade_fire_rate():  global shoot_delay, game_state; shoot_delay = max(200, int(shoot_delay * 0.8)); game_state = GAME
-def upgrade_damage():     global player, orbiting_orbs, explosion_spell, game_state; player.damage += 1; [setattr(o,"damage",o.damage+1) for o in orbiting_orbs]; explosion_spell.damage += 1; game_state = GAME
-def upgrade_speed():      global player, game_state; player.speed += 1; game_state = GAME
-def upgrade_orb():        global orbiting_orbs, player, game_state; orbiting_orbs.append(OrbitingOrb(player, 60+20*len(orbiting_orbs))) if len(orbiting_orbs)<3 else [setattr(o,"damage",o.damage+1) for o in orbiting_orbs]; game_state = GAME
-def upgrade_max_hp():     global player, game_state; player.max_hp += 2; player.hp = player.max_hp; game_state = GAME
-def upgrade_xp_boost():   global player, game_state; player.xp_multiplier += 0.25; game_state = GAME
-def upgrade_magnet():     global player, game_state; player.magnet_radius += 50; game_state = GAME
-def upgrade_explosion():  global explosion_spell, game_state; explosion_spell.damage +=1; game_state = GAME
-def upgrade_orb_speed():  global orbiting_orbs, game_state; [setattr(o,"speed",o.speed+0.02) for o in orbiting_orbs]; game_state=GAME
-def upgrade_life_steal(): global player, game_state; player.life_steal += 0.05; game_state=GAME
+# ------------------ UPGRADES ------------------
+def upgrade_fire_rate(): global shoot_delay, game_state; shoot_delay = max(200, int(shoot_delay * 0.8)); game_state = GAME
+def upgrade_damage(): global player, orbiting_orbs, explosion_spell, game_state; player.damage += 1; [setattr(o,"damage",o.damage+1) for o in orbiting_orbs]; explosion_spell.damage += 1; game_state = GAME
+def upgrade_speed(): global player, game_state; player.speed += 1; game_state = GAME
+def upgrade_orb(): global orbiting_orbs, player, game_state; orbiting_orbs.append(OrbitingOrb(player, 60+20*len(orbiting_orbs))) if len(orbiting_orbs)<3 else [setattr(o,"damage",o.damage+1) for o in orbiting_orbs]; game_state = GAME
+def upgrade_max_hp(): global player, game_state; player.max_hp += 2; player.hp = player.max_hp; game_state = GAME
+def upgrade_xp_boost(): global player, game_state; player.xp_multiplier += 0.25; game_state = GAME
+def upgrade_magnet(): global player, game_state; player.magnet_radius += 50; game_state = GAME
+def upgrade_explosion(): global explosion_spell, game_state; explosion_spell.damage += 2; game_state = GAME
+def upgrade_orb_speed(): global orbiting_orbs, game_state; [setattr(o,"speed",o.speed+0.02) for o in orbiting_orbs]; game_state = GAME
+def upgrade_life_steal(): global player, game_state; player.life_steal = getattr(player,"life_steal",0)+0.1; game_state = GAME
 
 UPGRADE_POOL = [
     {"name": "Increase Fire Rate", "func": upgrade_fire_rate, "rarity": "Common"},
@@ -293,7 +335,7 @@ RARITY_COLOR = {"Common": GREEN, "Rare": ORANGE, "Epic": PURPLE}
 def build_levelup_buttons():
     return [Button(up["name"], SCREEN_WIDTH//2-200, 220+80*i, 400, 50, RARITY_COLOR[up["rarity"]], GRAY, action=up["func"]) for i,up in enumerate(random.sample(UPGRADE_POOL,3))]
 
-# ---------------- GAME FUNCTIONS ----------------
+# ------------------ GAME FUNCTIONS ------------------
 def start_game():
     global game_state, player, enemies, bullets, gems, hearts, orbiting_orbs, explosion_spell, shoot_delay, shoot_timer, enemy_timer, strength, start_time, upgrade_buttons, boss
     game_state = GAME
@@ -313,12 +355,12 @@ def back_to_menu():
 start_btn = Button("Start Game", SCREEN_WIDTH//2-100, SCREEN_HEIGHT//2-40,200,80,RED,GRAY,action=start_game)
 menu_btn = Button("Main Menu", SCREEN_WIDTH//2-100, SCREEN_HEIGHT//2+40,200,60,RED,GRAY,action=back_to_menu)
 
-# ---------------- GLOBALS ----------------
+# ------------------ GLOBALS ------------------
 player=None; enemies=[]; bullets=[]; gems=[]; hearts=[]; orbiting_orbs=[]; explosion_spell=None
-shoot_delay=1000; shoot_timer=0; enemy_timer=0; strength=0; start_time=0; upgrade_buttons=[]
+shoot_delay=100; shoot_timer=0; enemy_timer=0; strength=0; start_time=0; upgrade_buttons=[]
 boss=None
 
-# ---------------- MAIN LOOP ----------------
+# ------------------ MAIN LOOP ------------------
 clock = pygame.time.Clock()
 running = True
 while running:
@@ -347,14 +389,14 @@ while running:
         # Spawn enemies
         if now-enemy_timer>2000: enemies.append(Enemy(random.randint(0,SCREEN_WIDTH),0,strength)); enemy_timer=now
 
-        # Spawn boss every 60s if none
-        if boss is None and elapsed%60==0 and elapsed>0:
+        # Spawn boss every 25s if none
+        if boss is None and elapsed%25==0 and elapsed>0:
             boss = Boss(random.randint(100, SCREEN_WIDTH-100), -100, strength)
             enemies.append(boss)
 
         # Auto shoot
-        Justkey = pygame.key.get_just_pressed()
-        if now-shoot_timer>shoot_delay and Justkey[pygame.K_SPACE] and enemies:
+        Justkey = pygame.key.get_pressed()
+        if Justkey[pygame.K_SPACE] and now-shoot_timer > shoot_delay and enemies:
             e=min(enemies,key=lambda en:math.hypot(en.rect.centerx-player.rect.centerx,en.rect.centery-player.rect.centery))
             dx,dy=e.rect.centerx-player.rect.centerx,e.rect.centery-player.rect.centery; d=math.hypot(dx,dy)
             if d>0: bullets.append(Bullet(player.rect.centerx,player.rect.centery,dx/d,dy/d,player.damage))
@@ -366,16 +408,10 @@ while running:
             if not SCREEN.get_rect().colliderect(b.rect): bullets.remove(b); continue
             for en in enemies[:]:
                 if b.rect.colliderect(en.rect):
-                    en.hp-=b.damage
-                    bullets.remove(b)
+                    en.hp-=b.damage; bullets.remove(b)
                     if en.hp<=0:
-                        if isinstance(en,Boss):
-                            upgrade_buttons = build_levelup_buttons() + [Button("Boss Reward!", SCREEN_WIDTH//2-200, 220+80*3, 400, 50, PURPLE, GRAY, action=random.choice(UPGRADE_POOL)["func"])]
-                            game_state = LEVEL_UP
-                            boss = None
-                        else:
-                            enemies.remove(en)
-                            gems.append(XPGem(en.rect.x,en.rect.y))
+                        enemies.remove(en); gems.append(XPGem(en.rect.x,en.rect.y))
+                        if en==boss: boss=None
                     break
 
         # Orbs
@@ -384,9 +420,10 @@ while running:
             for en in enemies[:]:
                 if o.rect.colliderect(en.rect):
                     en.hp-=o.damage
-                    if en.hp<=0 and not isinstance(en,Boss): enemies.remove(en); gems.append(XPGem(en.rect.x,en.rect.y))
+                    if en.hp<=0:
+                        enemies.remove(en); gems.append(XPGem(en.rect.x,en.rect.y))
+                        if en==boss: boss=None
 
-        # Explosion
         explosion_spell.update(enemies,gems,hearts); explosion_spell.draw(SCREEN)
 
         # Gems
@@ -406,26 +443,24 @@ while running:
 
         # Enemies move
         for en in enemies[:]:
-            if isinstance(en,Boss): en.update(player,enemies,strength)
-            else: en.move_towards_player(player)
+            if en!=boss: en.move_towards_player(player)
             en.draw(SCREEN)
             if player.rect.colliderect(en.rect):
                 dead=player.take_damage(en.damage)
-                if not isinstance(en,Boss): enemies.remove(en)
+                if not en.boss: enemies.remove(en)
                 if dead: game_state=GAME_OVER
 
-        SCREEN.blit(SMALL.render(f"Lvl {player.level}",True,WHITE),(220,10))
-        if elapsed//30+1>strength: strength+=1
+        # Boss update
+        if boss: boss.update(player, enemies, strength); boss.draw(SCREEN)
 
     elif game_state==LEVEL_UP:
         SCREEN.blit(FONT.render("LEVEL UP! Choose:",True,WHITE),(SCREEN_WIDTH//2-150,150))
         for b in upgrade_buttons: b.draw(SCREEN)
 
     elif game_state==GAME_OVER:
-        SCREEN.blit(FONT.render("GAME OVER",True,RED),(SCREEN_WIDTH//2-100,200))
+        SCREEN.blit(FONT.render("GAME OVER",True,WHITE),(SCREEN_WIDTH//2-100,200))
         menu_btn.draw(SCREEN)
 
-    pygame.display.flip()
-    clock.tick(60)
+    pygame.display.flip(); clock.tick(60)
 
 pygame.quit(); sys.exit()
