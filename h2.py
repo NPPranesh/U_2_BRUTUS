@@ -9,7 +9,7 @@ pygame.init()
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 SCREEN = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("Vampire Survivors Clone")
+pygame.display.set_caption("Ceaser")
 
 # Load background
 try:
@@ -144,7 +144,7 @@ class Boss(Enemy):
     def __init__(self, x, y, strength):
         super().__init__(x, y, strength, boss=True)
         self.rect = pygame.Rect(x, y, 100, 100)
-        self.max_hp = 300 + strength * 30
+        self.max_hp = 100 + strength * 30
         self.hp = self.max_hp
         self.speed = 1.5
         self.damage = 15
@@ -345,15 +345,18 @@ while running:
         now=pygame.time.get_ticks()
 
         # Spawn enemies
-        if now-enemy_timer>2000: enemies.append(Enemy(random.randint(0,SCREEN_WIDTH),0,strength)); enemy_timer=now
+        if now-enemy_timer>2000:
+            enemies.append(Enemy(random.randint(0,SCREEN_WIDTH),0,strength));
+            enemy_timer=now
 
-        # Spawn boss every 60s if none
-        if boss is None and elapsed%60==0 and elapsed>0:
+        # Spawn boss every 20s if none
+        if boss is None and elapsed%20==0 and elapsed>0:
             boss = Boss(random.randint(100, SCREEN_WIDTH-100), -100, strength)
             enemies.append(boss)
 
-        # Auto shoot
-        if now-shoot_timer>shoot_delay and enemies:
+        # Auto aim shoot
+        Justkey = pygame.key.get_just_pressed()
+        if Justkey[pygame.K_SPACE] and enemies:
             e=min(enemies,key=lambda en:math.hypot(en.rect.centerx-player.rect.centerx,en.rect.centery-player.rect.centery))
             dx,dy=e.rect.centerx-player.rect.centerx,e.rect.centery-player.rect.centery; d=math.hypot(dx,dy)
             if d>0: bullets.append(Bullet(player.rect.centerx,player.rect.centery,dx/d,dy/d,player.damage))
